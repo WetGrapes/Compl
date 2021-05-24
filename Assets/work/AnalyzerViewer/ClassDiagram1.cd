@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="Lucene.Net.Analysis.Analyzer" Collapsed="true">
+    <Position X="7.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Lucene.Net.Analysis.SimpleAnalyzer" Collapsed="true">
+    <Position X="7.25" Y="8" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Lucene.Net.Analysis.KeywordAnalyzer" Collapsed="true">
+    <Position X="7.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Lucene.Net.Analysis.WhitespaceAnalyzer" Collapsed="true">
+    <Position X="9.25" Y="5.5" Width="1.75" />
+    <InheritanceLine Type="Lucene.Net.Analysis.Analyzer" FixedFromPoint="true">
+      <Path>
+        <Point X="8.75" Y="6.812" />
+        <Point X="9.125" Y="6.812" />
+        <Point X="9.125" Y="5.846" />
+        <Point X="9.25" Y="5.846" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Lucene.Net.Analysis.StopAnalyzer" Collapsed="true">
+    <Position X="9.5" Y="7.25" Width="1.5" />
+    <InheritanceLine Type="Lucene.Net.Analysis.Analyzer" FixedFromPoint="true">
+      <Path>
+        <Point X="8.75" Y="6.812" />
+        <Point X="9.125" Y="6.812" />
+        <Point X="9.125" Y="7.596" />
+        <Point X="9.5" Y="7.596" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Lucene.Net.Analysis.PerFieldAnalyzerWrapper" Collapsed="true">
+    <Position X="4.25" Y="5.75" Width="2" />
+    <InheritanceLine Type="Lucene.Net.Analysis.Analyzer" FixedFromPoint="true">
+      <Path>
+        <Point X="7.25" Y="6.812" />
+        <Point X="6.875" Y="6.812" />
+        <Point X="6.875" Y="6.096" />
+        <Point X="6.25" Y="6.096" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier />
+  </Class>
+  <Class Name="Lucene.Net.Analysis.Standard.StandardAnalyzer" Collapsed="true">
+    <Position X="4.5" Y="7.25" Width="1.5" />
+    <InheritanceLine Type="Lucene.Net.Analysis.Analyzer" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="7.25" Y="6.812" />
+        <Point X="6.875" Y="6.812" />
+        <Point X="6.875" Y="7.625" />
+        <Point X="6" Y="7.625" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
