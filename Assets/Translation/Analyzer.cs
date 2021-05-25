@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
 
 public class Analyzer : MonoBehaviour
@@ -18,25 +19,41 @@ public class Analyzer : MonoBehaviour
     private StringReader sr; // позволяет посимвольно считывать строку
     private string[] TNUM;
     private string[] TID;
-    private (int, string) SerchLex(string[] lexes)
+    
+    private Dictionary<int, string> typesOfLexem = new Dictionary<int, string>()
+    {
+        {1, "служебные слова"},
+        {2, "ограничители"},
+        {3, "числа"},
+        {4, "идентификатор"},
+        {-1, "не опознано"},
+    };
+
+    public TMP_InputField Input;
+    public void StartAnalyze(){
+        Analysis(Input.text);
+        foreach (var lexeme in Lexemes)
+        {
+            Debug.Log(lexeme.val+ "\t" + typesOfLexem[lexeme.id] );
+        }
+        Debug.Log("F");
+    }
+    private (int, string) SearchLex(string[] lexes)
     {
         var srh = Array.FindIndex(lexes, s => s.Equals(buf));
-        if (srh != -1)
-            return (srh, buf);
-        else return (-1, "");
+        return srh != -1 ? (srh, buf) : (-1, "");
     }
 
     private (int, string) PushLex(string[] lexes, string buf)
     {
+        lexes ??= new string[] { };
         var srh = Array.FindIndex(lexes, s => s.Equals(buf));
-        if (srh != -1)
-            return (-1, "");
-        else
-        {
-            Array.Resize(ref lexes, lexes.Length + 1);
-            lexes[lexes.Length - 1] = buf;
-            return (lexes.Length - 1, buf);
-        }
+        if (srh != -1) return (-1, "");
+        
+        Array.Resize(ref lexes, lexes.Length + 1);
+        lexes[lexes.Length - 1] = buf;
+        return (lexes.Length - 1, buf);
+        
     }
     public void Analysis(string text)
     {
@@ -49,7 +66,7 @@ public class Analyzer : MonoBehaviour
                 case States.S:
                     if (sm[0] == ' ' || sm[0] == '\n' || sm[0] == '\t' || sm[0] == '\0' || sm[0] == '\r')
                         GetNext();
-                    else if (Char.IsLetter(sm[0]))
+                    else if (char.IsLetter(sm[0]))
                     {
                         buf = "";
                         buf += sm[0];
@@ -67,6 +84,7 @@ public class Analyzer : MonoBehaviour
                     {
                         state = States.COM;
                         GetNext();
+                        
                     }
                     else if (sm[0] == ':')
                     {
@@ -83,19 +101,18 @@ public class Analyzer : MonoBehaviour
                     else
                     {
                         state = States.DLM;
-
                     }
 
                     break;
                 case States.ID:
-                    if (Char.IsLetterOrDigit(sm[0]))
+                    if (char.IsLetterOrDigit(sm[0]))
                     {
                         buf += sm[0];
                         GetNext();
                     }
                     else
                     {
-                        var srch = SerchLex(Words);
+                        var srch = SearchLex(Words);
                         if (srch.Item1 != -1)
                             Lexemes.Add(new Lex(1, srch.Item1, srch.Item2));
                         else
@@ -108,16 +125,15 @@ public class Analyzer : MonoBehaviour
                     break;
 
                 case States.NUM:
-                    if (Char.IsDigit(sm[0]))
+                    if (char.IsDigit(sm[0]))
                     {
                         dt = dt * 10 + (int)(sm[0] - '0');
                         GetNext();
                     }
                     else
                     {
-
-                        var j = PushLex(TNUM, dt.ToString());
-                        Lexemes.Add(new Lex(3, j.Item1, j.Item2));
+                        var (item1, item2) = PushLex(TNUM, dt.ToString());
+                        Lexemes.Add(new Lex(3, item1, item2));
                         state = States.S;
                     }
                     break;
@@ -126,10 +142,10 @@ public class Analyzer : MonoBehaviour
                     buf = "";
                     buf += sm[0];
 
-                    var r = SerchLex(Delimiter);
-                    if (r.Item1 != -1)
+                    var (int_val, str_val) = SearchLex(Delimiter);
+                    if (int_val != -1)
                     {
-                        Lexemes.Add(new Lex(2, r.Item1, r.Item2));
+                        Lexemes.Add(new Lex(2, int_val, str_val));
                         state = States.S;
                         GetNext();
                     }
