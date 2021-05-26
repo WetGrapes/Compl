@@ -15,10 +15,11 @@ public class Analyzer : MonoBehaviour
     private char[] sm = new char[1];
     private int dt = 0;
     private enum States { S, NUM, DLM, FIN, ID, ER, ASGN, COM } // состояния state-машины
-    private States state; // хранит текущее состояние
+    private States state = States.S; // хранит текущее состояние
     private StringReader sr; // позволяет посимвольно считывать строку
     private string[] TNUM;
     private string[] TID;
+    private int tics = 0;
     
     private Dictionary<int, string> typesOfLexem = new Dictionary<int, string>()
     {
@@ -31,11 +32,16 @@ public class Analyzer : MonoBehaviour
 
     public TMP_InputField Input;
     public void StartAnalyze(){
+        Lexemes = new List<Lex>();
+        TNUM = new string[]{};
+        TID = new string[]{};
+        state = States.S;
+        buf = "";
+        dt = 0;
+        
         Analysis(Input.text);
-        foreach (var lexeme in Lexemes)
-        {
-            Debug.Log(lexeme.val+ "\t" + typesOfLexem[lexeme.id] );
-        }
+        
+        foreach (var lexeme in Lexemes) Debug.Log(lexeme.val + "\t" + typesOfLexem[lexeme.id]);
         Debug.Log("F");
     }
     private (int, string) SearchLex(string[] lexes)
@@ -57,9 +63,12 @@ public class Analyzer : MonoBehaviour
     }
     public void Analysis(string text)
     {
+        if(text == null || text.Length <= 0) return;
         sr = new StringReader(text);
-        while (state != States.FIN)
+        tics = text.Length*2;
+        while (state != States.FIN && tics>0)
         {
+            tics--;
             switch (state)
             {
 
@@ -177,7 +186,8 @@ public class Analyzer : MonoBehaviour
     }
     private void GetNext()
     {
-        sr.Read(sm, 0, 1);
+        var res = sr.Read(sm, 0, 1);
+        if (res == -1) sm[0] = '.';
     }
 
 }
