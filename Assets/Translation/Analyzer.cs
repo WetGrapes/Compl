@@ -5,16 +5,20 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 
+
 public class Analyzer : MonoBehaviour
 {
     private string[] Words = { "program", "var", "integer", "real", "bool", "begin", "end", "if", "then", "else", "while", "do", "read", "write", "true", "false" };
     private string[] Delimiter = { ".", ";", ",", "(", ")", "+", "-", "*", "/", "=", ">", "<" };
+  
     public List<Lex> Lexemes = new List<Lex>();
 
     private string buf = ""; // буфер для хранения лексемы
+    private string prevBuf = ""; // буфер для хранения прошлой лексемы
     private char[] sm = new char[1];
-    private int dt = 0;
-    private enum States { S, NUM, DLM, FIN, ID, ER, ASGN, COM } // состояния state-машины
+    private int dt = 0, mantis=1;
+    private float fl = 0;
+    // состояния state-машины
     private States state = States.S; // хранит текущее состояние
     private StringReader sr; // позволяет посимвольно считывать строку
     private string[] TNUM;
@@ -44,11 +48,7 @@ public class Analyzer : MonoBehaviour
         foreach (var lexeme in Lexemes) Debug.Log(lexeme.val + "\t" + typesOfLexem[lexeme.id]);
         Debug.Log("F");
     }
-    private (int, string) SearchLex(string[] lexes)
-    {
-        var srh = Array.FindIndex(lexes, s => s.Equals(buf));
-        return srh != -1 ? (srh, buf) : (-1, "");
-    }
+   
 
     private (int, string) PushLex(string[] lexes, string buf)
     {
@@ -66,7 +66,7 @@ public class Analyzer : MonoBehaviour
         if(text == null || text.Length <= 0) return;
         sr = new StringReader(text);
         tics = text.Length*2;
-        while (state != States.FIN && tics>0)
+        while (state != States.F && tics>0)
         {
             tics--;
             switch (state)
@@ -75,7 +75,7 @@ public class Analyzer : MonoBehaviour
                 case States.S:
                     if (sm[0] == ' ' || sm[0] == '\n' || sm[0] == '\t' || sm[0] == '\0' || sm[0] == '\r')
                         GetNext();
-                    else if (char.IsLetter(sm[0]))
+                    else if (char.IsLetter(sm[0]) || sm[0] == '_')
                     {
                         buf = "";
                         buf += sm[0];
@@ -86,26 +86,13 @@ public class Analyzer : MonoBehaviour
                     {
                         dt = (int)(sm[0] - '0');
                         GetNext();
-                        state = States.NUM;
+                        state = States.INT;
 
-                    }
-                    else if (sm[0] == '{')
-                    {
-                        state = States.COM;
-                        GetNext();
-                        
-                    }
-                    else if (sm[0] == ':')
-                    {
-                        state = States.ASGN;
-                        buf = "";
-                        buf += sm[0];
-                        GetNext();
                     }
                     else if (sm[0] == '.')
                     {
                         Lexemes.Add(new Lex(2, 0, sm[0].ToString()));
-                        state = States.FIN;
+                        state = States.F;
                     }
                     else
                     {
@@ -114,16 +101,19 @@ public class Analyzer : MonoBehaviour
 
                     break;
                 case States.ID:
-                    if (char.IsLetterOrDigit(sm[0]))
+                    if (char.IsLetterOrDigit(sm[0]) || sm[0] == '_')
                     {
                         buf += sm[0];
                         GetNext();
                     }
                     else
                     {
-                        var srch = SearchLex(Words);
+                        var srch = WordTable.WideSearch(buf);
                         if (srch.Item1 != -1)
-                            Lexemes.Add(new Lex(1, srch.Item1, srch.Item2));
+                        {
+                            ///если нашли стандартное слово
+                            state = (States) srch.Item1;
+                        }
                         else
                         {
                             var j = PushLex(TID, buf);
@@ -133,16 +123,34 @@ public class Analyzer : MonoBehaviour
                     }
                     break;
 
-                case States.NUM:
+                case States.INT:
                     if (char.IsDigit(sm[0]))
                     {
                         dt = dt * 10 + (int)(sm[0] - '0');
                         GetNext();
                     }
-                    else
+                    else if (sm[0] == '.' || sm[0] == ',')
+                    {
+                        fl = dt;
+                        state = States.FLOAT;
+                        GetNext();
+                    } else
                     {
                         var (item1, item2) = PushLex(TNUM, dt.ToString());
                         Lexemes.Add(new Lex(3, item1, item2));
+                        state = States.S;
+                    }
+                    break;
+                case States.FLOAT:
+                    if (char.IsDigit(sm[0]))
+                    {
+                        fl += (float)(sm[0] - '0')/Mathf.Pow(10,mantis++);
+                        GetNext();
+                    }else
+                    {
+                        mantis = 1;
+                        var (a, b) = PushLex(TNUM, dt.ToString());
+                        Lexemes.Add(new Lex(3, a, b));
                         state = States.S;
                     }
                     break;
@@ -151,34 +159,21 @@ public class Analyzer : MonoBehaviour
                     buf = "";
                     buf += sm[0];
 
-                    var (int_val, str_val) = SearchLex(Delimiter);
-                    if (int_val != -1)
+                    var (c, d) = WordTable.SearchLex(Delimiter, buf);
+                    if (c != -1)
                     {
-                        Lexemes.Add(new Lex(2, int_val, str_val));
+                        Lexemes.Add(new Lex(2, c, d));
                         state = States.S;
                         GetNext();
                     }
                     else
                         state = States.ER;
                     break;
-                case States.ASGN:
-                    if (sm[0] == '=')
-                    {
-                        buf += sm[0];
-                        Lexemes.Add(new Lex(2, 4, buf));
-                        buf = "";
-                        GetNext();
-                    }
-                    else
-                        Lexemes.Add(new Lex(2, 3, buf));
-                    state = States.S;
-
-                    break;
                 case States.ER:
                     Debug.Log("Ошибка в программе");
-                    state = States.FIN;
+                    state = States.F;
                     break;
-                case States.FIN:
+                case States.F:
                     Debug.Log("Лексический анализ закончен");
                     break;
             }
