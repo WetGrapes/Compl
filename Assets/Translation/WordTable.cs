@@ -53,7 +53,7 @@ public class WordTable : MonoBehaviour
         {
         States.CON, new Dictionary<string,List<string>>
         {
-            {"if",new List<string>{"если"}},
+            {"if(",new List<string>{"если"}},
             {"}\nelse",new List<string>{",иначе"}},
         }
     },
@@ -61,14 +61,14 @@ public class WordTable : MonoBehaviour
         States.FUNC, new Dictionary<string,List<string>>
         {
             {"",new List<string>{"функц", "подпрограмм", "вызва", "вызов", "вызыв","парамет"}},
-            {"\n{",new List<string>{"котор"}},
+            {"\n{\n",new List<string>{"котор"}},
             {")",new List<string>{";"} }
         }
     },
     {
         States.TYPE, new Dictionary<string,List<string>>
         {
-            {"int",new List<string>{"целоч","цела"}},
+            {"int",new List<string>{"целоч","цела","целое"}},
             {"float",new List<string>{"дробн", "веществ"}},
             {"char",new List<string>{"символ"}},
             {"bool",new List<string>{"логич"}},
@@ -80,7 +80,7 @@ public class WordTable : MonoBehaviour
             {"for(",new List<string>{"для"}},
             {";",new List<string>{",", "веществ"}},
             {"", new List<string>{"пока", "до","тех", "пор"}},
-            {")\n{",new List<string>{"выполн", "сдела"}},
+            {")\n{\n",new List<string>{"выполн", "сдела"}},
             {"break", new List<string>{"останови"}},
             {"continue", new List<string>{"следующ"}},
         }
@@ -91,6 +91,8 @@ public class WordTable : MonoBehaviour
             {"break", new List<string>{"останови"}},
             {"continue", new List<string>{"следующ"}},
             {"return", new List<string>{"вернуть", "возвра"}},
+            {"#include", new List<string>{"подключ", "добави"}},
+            {"int main(){\n", new List<string>{"программа_"}}
         }
     },
     {
@@ -107,12 +109,14 @@ public class WordTable : MonoBehaviour
             {"&&",new List<string>{"и"}},
             {"||",new List<string>{"или"}},
             {"!",new List<string>{"не"}},
-            {"=",new List<string>{"равн"}},
-            {")\n{",new List<string>{"то", "тогда", "котор"}},
+            {"=",new List<string>{"=","равн"}},
+            {")\n{\n",new List<string>{"то", "тогда", "котор"}},
             {"}", new List<string>{"."}},
-            {";", new List<string>{";"}},
+            {")", new List<string>{";"}},
             {"(",new List<string>{"от", "при", "с", ":","без"}},
+            {"",new List<string>{"на", "в"}},
             {",",new List<string>{","}},
+            {"%", new List<string>{"%", "процент"}},
             {"\"",new List<string>{"\""}},
         }
     },
@@ -124,3 +128,17 @@ public class WordTable : MonoBehaviour
     },
     };
 }
+
+
+/*
+
+подключить "iostream"
+
+программа_
+целое a равно 4
+целое b равно 8
+целое c равно b делить на a
+вызовем функцию printf с параметрами "%d", c;
+если c больше 1, то c равно b минус a.
+
+*/

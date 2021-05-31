@@ -22,7 +22,7 @@ public class Analyzer : MonoBehaviour
     private string[] TNUM;
     private string[] TID;
     private int tics = 0;
-
+    bool stop = false;
     private Dictionary<int, string> typesOfLexem = new Dictionary<int, string>()
     {
         {1, "служебные слова"},
@@ -64,16 +64,22 @@ public class Analyzer : MonoBehaviour
     {
         if (text == null || text.Length <= 0) return;
         sr = new StringReader(text);
-        tics = text.Length * 2;
+        tics = text.Length + 1;
+        Debug.LogWarning(text.Length);
         while (globalState != States.F && tics > 0)
         {
-            tics--;
+            
             switch (globalState)
             {
 
                 case States.S:
-                    if (sm[0] == ' ' || sm[0] == '\n' || sm[0] == '\t' || sm[0] == '\0' || sm[0] == '\r')
+                    if (sm[0] == ' ' || sm[0] == '\t' || sm[0] == '\0' || sm[0] == '\r')
                         GetNext();
+                    else if (sm[0] == '\n')
+                    {
+                        Lexemes.Add(new Lex(2, (int)States.DLM, ";\n"));
+                        GetNext();
+                    }
                     else if (char.IsLetter(sm[0]) || sm[0] == '_')
                     {
                         buf = "";
@@ -92,7 +98,6 @@ public class Analyzer : MonoBehaviour
                     {
                         globalState = States.DLM;
                     }
-
                     break;
                 case States.ID:
                     if (char.IsLetterOrDigit(sm[0]) || sm[0] == '_')
@@ -179,21 +184,28 @@ public class Analyzer : MonoBehaviour
         }
         Output();
     }
+
+    private bool str;
     private void Output()
     {
         foreach (var lex in Lexemes)
         {
-            output.text += lex.val + " ";
+            var c = ' ';
+            if (lex.val == "\"") str = !str;
+            if (str) c = '\0';
+            output.text += lex.val + (str ? "": c.ToString());
+
         }
     }
     private void GetNext()
     {
+        tics--;
         var res = sr.Read(sm, 0, 1);
-        if (res == -1)
-        {
-            Lexemes.Add(new Lex(2, (int)States.DLM, "}"));
-            globalState = States.F;
-        }
+        if(res == -1 ) Debug.LogWarning("ATAS");
+        if (res != -1 || globalState == States.F) return;
+        Debug.LogWarning("ATAS");
+        Lexemes.Add(new Lex(2, (int)States.DLM, "}"));
+        globalState = States.F;
     }
 
 }
