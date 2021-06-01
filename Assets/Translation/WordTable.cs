@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL }
+public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL, STR }
 
 public class WordTable : MonoBehaviour
 {
@@ -53,40 +53,36 @@ public class WordTable : MonoBehaviour
         {
         States.CON, new Dictionary<string,List<string>>
         {
-            {"if(",new List<string>{"если"}},
-            {"}\nelse",new List<string>{",иначе"}},
+            {"if",new List<string>{"если"}},
+            {"\nelse",new List<string>{"иначе"}},
         }
     },
     {
         States.FUNC, new Dictionary<string,List<string>>
         {
             {"",new List<string>{"функц", "подпрограмм", "вызва", "вызов", "вызыв","парамет"}},
-            {"\n{\n",new List<string>{"котор"}},
-            {")",new List<string>{";"} }
+            
         }
     },
     {
         States.TYPE, new Dictionary<string,List<string>>
         {
-            {"int",new List<string>{"целоч","цела","целое"}},
-            {"float",new List<string>{"дробн", "веществ"}},
-            {"char",new List<string>{"символ"}},
-            {"bool",new List<string>{"логич"}},
+            {"int",new List<string>{"целоч","цела","целое", "инт"}},
+            {"float",new List<string>{"дробн", "веществ", "флоат"}},
+            {"char",new List<string>{"символ","чар"}},
+            {"bool",new List<string>{"логич", "бул"}},
         }
     },
     {
         States.LOOPFOR, new Dictionary<string,List<string>>
         {
-            {"for(",new List<string>{"для"}},
-            {"", new List<string>{"до","тех", "пор"}},
-            {")\n{\n",new List<string>{"выполн", "сдела"}},
+            {"for",new List<string>{"для"}},
         }
     },
       {
         States.LOOPWHILE, new Dictionary<string,List<string>>
         {
-            {"while(", new List<string>{"пока"}},
-            {")\n{\n",new List<string>{"повтор"}},
+            {"while", new List<string>{"пока"}},
         }
     },
     {
@@ -96,33 +92,34 @@ public class WordTable : MonoBehaviour
             {"continue", new List<string>{"следующ"}},
             {"return", new List<string>{"вернуть", "возвра"}},
             {"#include", new List<string>{"подключ", "добави"}},
-            {"int main(){\n", new List<string>{"программа_"}}
+            {"int", new List<string>{"программа_"}}
         }
     },
     {
         States.DLM, new Dictionary<string,List<string>>
         {
             {"1", new List<string>{"один"}},
-            {"+",new List<string>{"слож", "прибав","увеличи", "плюс"}},
-            {"-",new List<string>{"уменьш","минус"}},
-            {"*",new List<string>{"умнож"}},
-            {"/",new List<string>{"раздел", "делит"}},
-            {">",new List<string>{"больше"}},
-            {"<",new List<string>{"меньше"}},
+            {"+",new List<string>{"слож", "прибав","увеличи", "плюс", "+"}},
+            {"-",new List<string>{"уменьш","минус", "-"}},
+            {"*",new List<string>{"умнож", "*"}},
+            {"/",new List<string>{"раздел", "делит", "/"}},
+            {">",new List<string>{"больш", ">"}},
+            {"<",new List<string>{"меньш","<"}},
             {"==",new List<string>{"эквивалент"}},
             {"&&",new List<string>{"и"}},
             {"||",new List<string>{"или"}},
             {"!",new List<string>{"не"}},
             {"=",new List<string>{"=","равн"}},
-            {")\n{\n",new List<string>{"то", "тогда", "котор"}},
+            {")\n{\n",new List<string>{"то", "тогда", "котор", "повтор", "выполн", "сдела"}},
             {"}", new List<string>{"."}},
             {";", new List<string>{":"}},
             {")", new List<string>{";"}},
             {"(",new List<string>{"от", "при", "с","без"}},
-            {"",new List<string>{"на", "в"}},
+            {"",new List<string>{"на", "в","до","тех", "пор"}},
             {",",new List<string>{","}},
             {"%", new List<string>{"%", "процент"}},
-            {"\"",new List<string>{"\""}},
+            {"\n{\n",new List<string>{"котор"}},
+            
         }
     },
     {
@@ -131,19 +128,31 @@ public class WordTable : MonoBehaviour
             {";\n",new List<string>{"\n"}},
         }
     },
+    {
+        States.STR, new Dictionary<string,List<string>>
+        {
+            {"\"",new List<string>{"\""}},
+        }
+    },
     };
 }
 
 
 /*
-подключить "iostream"
+подключ "iostream"
+
+веществ функция F с инт a = 5; которая
+printf от "%d", a плюс равно один;
+.
 
 программа_
-целое a равно 4
-целое b равно 8
-целое c равно b делить на a
-вызовем функцию printf с параметрами "%d", c;
+целое a = 4
+целочисленное b равн 8
+целая c = b раздел на a
+printf от "%d", c;
 если c больше 1, то c равно b минус a
+.
+для инт i = 0: i меньш 5: i плюс равно один повторяй printf от "%d", i;
 .
 .
 

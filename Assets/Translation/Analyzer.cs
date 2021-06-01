@@ -9,6 +9,7 @@ using UnityEngine;
 public class Analyzer : MonoBehaviour
 {
     public List<Lex> Lexemes = new List<Lex>();
+    private Lex previous;
     public TextMeshProUGUI output;
     private string buf = ""; // буфер для хранения лексемы
     private string prevBuf = ""; // буфер для хранения прошлой лексемы
@@ -115,15 +116,17 @@ public class Analyzer : MonoBehaviour
                         {
                             ///если нашли стандартное слово
                             globalState = (States)srch.Item1;
+                            if(globalState == States.DLM) globalState = States.S;
+                            previous = new Lex(1, srch.Item1, srch.Item2);
                             Lexemes.Add(new Lex(1, srch.Item1, srch.Item2));
                         }
                         else
                         {
                             var j = PushLex(TID, buf);
                             Lexemes.Add(new Lex(4, j.Item1, j.Item2));
-
+                            globalState = States.S;
                         }
-                        globalState = States.S;
+                        
                     }
                     break;
 
@@ -172,7 +175,18 @@ public class Analyzer : MonoBehaviour
                         GetNext();
                     }
                     else
-                        globalState = States.ER;
+                    {
+                        (c, d) = WordTable.StateSearch(States.STR, buf);
+                        if (c != -1)
+                        {
+                            Lexemes.Add(new Lex(2, c, d));
+                            globalState = States.S;
+                            GetNext();
+                        }
+                        else
+                            globalState = States.ER;
+                    }
+                       
                     break;
                 case States.ER:
                     Debug.Log("Ошибка в программе");
@@ -182,21 +196,61 @@ public class Analyzer : MonoBehaviour
                     Debug.Log("Лексический анализ закончен");
                     break;
 
+                case States.CON:
+                    if (previous.val == "if") Lexemes.Add(new Lex(2, (int) States.DLM, "("));
+                    globalState = States.S;
+                    break;
+                case States.FUNC:
+                    globalState = States.S;
+                    break;
+                case States.TYPE:
+                    globalState = States.S;
+                    break;
+                case States.LOOPFOR:
+                    if (previous.val == "for") Lexemes.Add(new Lex(2, (int) States.DLM, "("));
+                    globalState = States.S;
+                    break;
+                case States.LOOPWHILE:
+                    if (previous.val == "while") Lexemes.Add(new Lex(2, (int) States.DLM, "("));
+                    globalState = States.S;
+                    break;
+                case States.WORD:
+                    if (previous.val == "int")
+                    {
+                        Lexemes.Add(new Lex(3, (int)States.ID, "main"));
+                        Lexemes.Add(new Lex(2, (int)States.DLM, "(){\n"));
+                    }
+                    globalState = States.S;
+                    break;
+                case States.NL:
+                    globalState = States.S;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
         Output();
     }
 
     private bool str;
-    private List<string> hexColor = new List<string> { "00ffff", "00ffff", "00ffff", "00ffff", "00ffff", "00ffff", "800000", "808000", "800000", "000080", "ff00ff", "800000", "000080", "ff00ff" };
+    private List<string> hexColor = new List<string> 
+        { "ffffff", "ffffff", "ffffff", "ffffff", "fff060", "00ffff", 
+            "800000", "808000", "800000", "000080", "ff00ff", "800000", 
+            "000080", "ff00ff", "ff00ff" };
     private void Output()
     {
         foreach (var lex in Lexemes)
         {
             var c = ' ';
             if (lex.val == "\"") str = !str;
-            if (str) c = '\0';
-            output.text +="<COLOR=#"+hexColor[lex.lex]+">" + lex.val + "</COLOR>" +(str ? "" : c.ToString());
+            var hex = hexColor[lex.lex];
+            if (str)
+            {
+                c = '\0';
+                hex = hexColor[(int)States.STR];
+            }
+            
+            output.text +="<COLOR=#"+hex+">" + lex.val + "</COLOR>" +(str ? "" : c.ToString());
         }
     }
     private void GetNext()
