@@ -75,18 +75,17 @@ public class Analyzer : MonoBehaviour
 
                 case States.S:
                     if (sm[0] == ' ' || sm[0] == '\t' || sm[0] == '\0' || sm[0] == '\r')
+                    {
+                        reverseBuf += sm[0];
                         GetNext();
+                    }
                     else if (sm[0] == '\n')
                     {
                         if (!Lexemes[Lexemes.Count - 1].val.Contains(";") && !Lexemes[Lexemes.Count - 1].val.Contains("{"))
                         {
                             Lexemes.Add(new Lex(2, (int)States.DLM, ";\n"));
                         }
-                        GetNext();
-                    }
-                    else if (sm[0] == '<')
-                    {
-                        globalState = States.COL;
+                        reverseBuf += sm[0];
                         GetNext();
                     }
                     else if (char.IsLetter(sm[0]) || sm[0] == '_')
@@ -121,19 +120,19 @@ public class Analyzer : MonoBehaviour
                         {
                             ///если нашли стандартное слово
                             globalState = (States)srch.Item1;
-                            if(globalState == States.DLM) globalState = States.S;
-                            //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
+                            if (globalState == States.DLM) globalState = States.S;
+                            reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
                             previous = new Lex(1, srch.Item1, srch.Item2);
                             Lexemes.Add(new Lex(1, srch.Item1, srch.Item2));
                         }
                         else
                         {
                             var j = PushLex(TID, buf);
-                            //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
+                            reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
                             Lexemes.Add(new Lex(4, j.Item1, j.Item2));
                             globalState = States.S;
                         }
-                        
+
                     }
                     break;
 
@@ -141,6 +140,7 @@ public class Analyzer : MonoBehaviour
                     if (char.IsDigit(sm[0]))
                     {
                         dt = dt * 10 + (int)(sm[0] - '0');
+                        reverseBuf += sm[0];
                         GetNext();
                     }
                     else if (sm[0] == '.' || sm[0] == ',')
@@ -152,7 +152,7 @@ public class Analyzer : MonoBehaviour
                     else
                     {
                         var (item1, item2) = PushLex(TNUM, dt.ToString());
-                        //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
+                        reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
                         Lexemes.Add(new Lex(3, item1, item2));
                         globalState = States.S;
                     }
@@ -167,7 +167,7 @@ public class Analyzer : MonoBehaviour
                     {
                         mantis = 1;
                         var (a, b) = PushLex(TNUM, dt.ToString());
-                        //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
+                        reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
                         Lexemes.Add(new Lex(3, a, b));
                         globalState = States.S;
                     }
@@ -189,14 +189,14 @@ public class Analyzer : MonoBehaviour
                         if (c != -1)
                         {
                             Lexemes.Add(new Lex(2, c, d));
-                            //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
+                            reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
                             globalState = States.S;
                             GetNext();
                         }
                         else
                             globalState = States.ER;
                     }
-                       
+
                     break;
                 case States.ER:
                     Debug.Log("Ошибка в программе");
@@ -207,7 +207,7 @@ public class Analyzer : MonoBehaviour
                     break;
 
                 case States.CON:
-                    if (previous.val == "if") Lexemes.Add(new Lex(2, (int) States.DLM, "("));
+                    if (previous.val == "if") Lexemes.Add(new Lex(2, (int)States.DLM, "("));
                     globalState = States.S;
                     break;
                 case States.FUNC:
@@ -217,11 +217,11 @@ public class Analyzer : MonoBehaviour
                     globalState = States.S;
                     break;
                 case States.LOOPFOR:
-                    if (previous.val == "for") Lexemes.Add(new Lex(2, (int) States.DLM, "("));
+                    if (previous.val == "for") Lexemes.Add(new Lex(2, (int)States.DLM, "("));
                     globalState = States.S;
                     break;
                 case States.LOOPWHILE:
-                    if (previous.val == "while") Lexemes.Add(new Lex(2, (int) States.DLM, "("));
+                    if (previous.val == "while") Lexemes.Add(new Lex(2, (int)States.DLM, "("));
                     globalState = States.S;
                     break;
                 case States.WORD:
@@ -235,28 +235,22 @@ public class Analyzer : MonoBehaviour
                 case States.NL:
                     globalState = States.S;
                     break;
-                case States.COL:
-                    if(sm[0] == '>')
-                        globalState = States.S;
-                    GetNext();
-                    break;
-                
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
         Output();
-        //Input.text = reverseBuf;
+        Input.text = reverseBuf;
     }
 
     private bool str;
-    private List<string> hexColor = new List<string> 
-        { "ffffff", "ffffff", "ffffff", "ffffff", "fff060", "00ffff", 
-            "800000", "808000", "800000", "000080", "ff00ff", "800000", 
+    private List<string> hexColor = new List<string>
+        { "ffffff", "ffffff", "ffffff", "ffffff", "fff060", "00ffff",
+            "800000", "808000", "800000", "000080", "ff00ff", "800000",
             "000080", "ff00ff", "ff00ff" };
 
     private string colin = "<COLOR=#", colout = "</COLOR>";
-   
+
     private string ColoredLex(string val, string col) => colin + col + ">" + val + colout;
     private string reverseBuf;
     private void Output()
@@ -271,8 +265,8 @@ public class Analyzer : MonoBehaviour
                 c = '\0';
                 hex = hexColor[(int)States.STR];
             }
-            
-            output.text += ColoredLex (lex.val, hex) +(str ? "" : c.ToString());
+
+            output.text += ColoredLex(lex.val, hex) + (str ? "" : c.ToString());
         }
     }
     private void GetNext()

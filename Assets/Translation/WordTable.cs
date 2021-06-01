@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL, STR,COL }
+public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL, STR }
 
 public class WordTable : MonoBehaviour
 {
@@ -30,7 +30,7 @@ public class WordTable : MonoBehaviour
         var a = -1;
         var b = "";
         foreach (var list in val[_state])
-        {
+        {        
             (a, b) = SearchLex(list.Value.ToArray(), buf);
             if (a == -1) continue;
             a = (int)_state;
