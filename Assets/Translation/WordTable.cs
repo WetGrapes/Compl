@@ -4,16 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL, STR }
+public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL, STR,COL }
 
 public class WordTable : MonoBehaviour
 {
     public static (int, string) WideSearch(string buf)
     {
-        for (var i = startIndex; i < count; i++)
+        try
         {
-            var srch = StateSearch((States)i, buf);
-            if (srch.Item1 != -1) return srch;
+            for (var i = startIndex; i < count; i++)
+            {
+                var srch = StateSearch((States)i, buf);
+                if (srch.Item1 != -1) return srch;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log(buf);
+            throw;
         }
         return (-1, "");
     }
@@ -21,7 +29,7 @@ public class WordTable : MonoBehaviour
     {
         var a = -1;
         var b = "";
-        foreach (var list in WordTable.val[_state])
+        foreach (var list in val[_state])
         {
             (a, b) = SearchLex(list.Value.ToArray(), buf);
             if (a == -1) continue;
@@ -103,8 +111,8 @@ public class WordTable : MonoBehaviour
             {"-",new List<string>{"уменьш","минус", "-"}},
             {"*",new List<string>{"умнож", "*"}},
             {"/",new List<string>{"раздел", "делит", "/"}},
-            {">",new List<string>{"больш", ">"}},
-            {"<",new List<string>{"меньш","<"}},
+            {">",new List<string>{"больш"}},
+            {"<",new List<string>{"меньш"}},
             {"==",new List<string>{"эквивалент"}},
             {"&&",new List<string>{"и"}},
             {"||",new List<string>{"или"}},

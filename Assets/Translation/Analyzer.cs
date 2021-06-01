@@ -84,6 +84,11 @@ public class Analyzer : MonoBehaviour
                         }
                         GetNext();
                     }
+                    else if (sm[0] == '<')
+                    {
+                        globalState = States.COL;
+                        GetNext();
+                    }
                     else if (char.IsLetter(sm[0]) || sm[0] == '_')
                     {
                         buf = "";
@@ -117,12 +122,14 @@ public class Analyzer : MonoBehaviour
                             ///если нашли стандартное слово
                             globalState = (States)srch.Item1;
                             if(globalState == States.DLM) globalState = States.S;
+                            //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
                             previous = new Lex(1, srch.Item1, srch.Item2);
                             Lexemes.Add(new Lex(1, srch.Item1, srch.Item2));
                         }
                         else
                         {
                             var j = PushLex(TID, buf);
+                            //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
                             Lexemes.Add(new Lex(4, j.Item1, j.Item2));
                             globalState = States.S;
                         }
@@ -145,6 +152,7 @@ public class Analyzer : MonoBehaviour
                     else
                     {
                         var (item1, item2) = PushLex(TNUM, dt.ToString());
+                        //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
                         Lexemes.Add(new Lex(3, item1, item2));
                         globalState = States.S;
                     }
@@ -159,6 +167,7 @@ public class Analyzer : MonoBehaviour
                     {
                         mantis = 1;
                         var (a, b) = PushLex(TNUM, dt.ToString());
+                        //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
                         Lexemes.Add(new Lex(3, a, b));
                         globalState = States.S;
                     }
@@ -180,6 +189,7 @@ public class Analyzer : MonoBehaviour
                         if (c != -1)
                         {
                             Lexemes.Add(new Lex(2, c, d));
+                            //reverseBuf += ColoredLex(buf, hexColor[(int) globalState]);
                             globalState = States.S;
                             GetNext();
                         }
@@ -225,11 +235,18 @@ public class Analyzer : MonoBehaviour
                 case States.NL:
                     globalState = States.S;
                     break;
+                case States.COL:
+                    if(sm[0] == '>')
+                        globalState = States.S;
+                    GetNext();
+                    break;
+                
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
         Output();
+        //Input.text = reverseBuf;
     }
 
     private bool str;
@@ -237,6 +254,11 @@ public class Analyzer : MonoBehaviour
         { "ffffff", "ffffff", "ffffff", "ffffff", "fff060", "00ffff", 
             "800000", "808000", "800000", "000080", "ff00ff", "800000", 
             "000080", "ff00ff", "ff00ff" };
+
+    private string colin = "<COLOR=#", colout = "</COLOR>";
+   
+    private string ColoredLex(string val, string col) => colin + col + ">" + val + colout;
+    private string reverseBuf;
     private void Output()
     {
         foreach (var lex in Lexemes)
@@ -250,7 +272,7 @@ public class Analyzer : MonoBehaviour
                 hex = hexColor[(int)States.STR];
             }
             
-            output.text +="<COLOR=#"+hex+">" + lex.val + "</COLOR>" +(str ? "" : c.ToString());
+            output.text += ColoredLex (lex.val, hex) +(str ? "" : c.ToString());
         }
     }
     private void GetNext()
