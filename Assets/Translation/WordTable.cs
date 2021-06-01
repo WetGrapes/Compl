@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, WORD, DLM, NL }
+public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL }
 
 public class WordTable : MonoBehaviour
 {
@@ -33,7 +33,7 @@ public class WordTable : MonoBehaviour
     }
     public static (int, string) SearchLex(string[] lexes, string buf)
     {
-        var srh = Array.FindIndex(lexes, s => 
+        var srh = Array.FindIndex(lexes, s =>
         {
             if (buf.StartsWith(s))
             {
@@ -78,11 +78,15 @@ public class WordTable : MonoBehaviour
         States.LOOPFOR, new Dictionary<string,List<string>>
         {
             {"for(",new List<string>{"для"}},
-            {";",new List<string>{",", "веществ"}},
-            {"", new List<string>{"пока", "до","тех", "пор"}},
+            {"", new List<string>{"до","тех", "пор"}},
             {")\n{\n",new List<string>{"выполн", "сдела"}},
-            {"break", new List<string>{"останови"}},
-            {"continue", new List<string>{"следующ"}},
+        }
+    },
+      {
+        States.LOOPWHILE, new Dictionary<string,List<string>>
+        {
+            {"while(", new List<string>{"пока"}},
+            {")\n{\n",new List<string>{"повтор"}},
         }
     },
     {
@@ -112,15 +116,16 @@ public class WordTable : MonoBehaviour
             {"=",new List<string>{"=","равн"}},
             {")\n{\n",new List<string>{"то", "тогда", "котор"}},
             {"}", new List<string>{"."}},
+            {";", new List<string>{":"}},
             {")", new List<string>{";"}},
-            {"(",new List<string>{"от", "при", "с", ":","без"}},
+            {"(",new List<string>{"от", "при", "с","без"}},
             {"",new List<string>{"на", "в"}},
             {",",new List<string>{","}},
             {"%", new List<string>{"%", "процент"}},
             {"\"",new List<string>{"\""}},
         }
     },
-    { 
+    {
         States.NL, new Dictionary<string,List<string>>
         {
             {";\n",new List<string>{"\n"}},
@@ -131,7 +136,6 @@ public class WordTable : MonoBehaviour
 
 
 /*
-
 подключить "iostream"
 
 программа_
@@ -139,6 +143,8 @@ public class WordTable : MonoBehaviour
 целое b равно 8
 целое c равно b делить на a
 вызовем функцию printf с параметрами "%d", c;
-если c больше 1, то c равно b минус a.
+если c больше 1, то c равно b минус a
+.
+.
 
 */

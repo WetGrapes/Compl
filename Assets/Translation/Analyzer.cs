@@ -68,7 +68,7 @@ public class Analyzer : MonoBehaviour
         Debug.LogWarning(text.Length);
         while (globalState != States.F && tics > 0)
         {
-            
+
             switch (globalState)
             {
 
@@ -77,7 +77,10 @@ public class Analyzer : MonoBehaviour
                         GetNext();
                     else if (sm[0] == '\n')
                     {
-                        Lexemes.Add(new Lex(2, (int)States.DLM, ";\n"));
+                        if (!Lexemes[Lexemes.Count - 1].val.Contains(";") && !Lexemes[Lexemes.Count - 1].val.Contains("{"))
+                        {
+                            Lexemes.Add(new Lex(2, (int)States.DLM, ";\n"));
+                        }
                         GetNext();
                     }
                     else if (char.IsLetter(sm[0]) || sm[0] == '_')
@@ -161,7 +164,6 @@ public class Analyzer : MonoBehaviour
 
                     buf = "";
                     buf += sm[0];
-
                     var (c, d) = WordTable.StateSearch(States.DLM, buf);
                     if (c != -1)
                     {
@@ -186,6 +188,7 @@ public class Analyzer : MonoBehaviour
     }
 
     private bool str;
+    private List<string> hexColor = new List<string> { "00ffff", "00ffff", "00ffff", "00ffff", "00ffff", "00ffff", "800000", "808000", "800000", "000080", "ff00ff", "800000", "000080", "ff00ff" };
     private void Output()
     {
         foreach (var lex in Lexemes)
@@ -193,15 +196,14 @@ public class Analyzer : MonoBehaviour
             var c = ' ';
             if (lex.val == "\"") str = !str;
             if (str) c = '\0';
-            output.text += lex.val + (str ? "": c.ToString());
-
+            output.text +="<COLOR=#"+hexColor[lex.lex]+">" + lex.val + "</COLOR>" +(str ? "" : c.ToString());
         }
     }
     private void GetNext()
     {
         tics--;
         var res = sr.Read(sm, 0, 1);
-        if(res == -1 ) Debug.LogWarning("ATAS");
+        if (res == -1) Debug.LogWarning("ATAS");
         if (res != -1 || globalState == States.F) return;
         Debug.LogWarning("ATAS");
         Lexemes.Add(new Lex(2, (int)States.DLM, "}"));
