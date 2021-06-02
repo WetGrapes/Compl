@@ -4,14 +4,12 @@ using UnityEngine;
 
 public class Lex 
 {
-        public int id;
-        public int lex;
+        public int state;
         public string val;
 
-        public Lex(int _id, int _lex, string _val)
+        public Lex( int _stateID, string _val)
         {
-            id = _id;
-            lex = _lex;
+            state = _stateID;
             val = _val;
         }
 }

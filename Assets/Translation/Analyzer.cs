@@ -11,60 +11,38 @@ using UnityEngine;
 public class Analyzer : MonoBehaviour
 {
     public TMP_InputField Input, Output; // ввод данных и вывод
-    
+
     //буферы
     private string buf = "";             // буфер дл€ хранени€ лексемы
     private char[] sm = new char[1];     //буфер дл€ последнего символа
     private int dt = 0, mantis = 1;      //цела€ часть, знак мантиссы
     private float fl = 0;                //вещественное число
-    
-    
+
+
     //лексемы
     public List<Lex> Lexemes = new List<Lex>();    //все лексемы
     private Lex previous;                          //буфер дл€ прошлой лексемы дл€ обработки особых состо€ний
-    
-    
+
+
     // состо€ни€ state-машины
     private States globalState = States.S;   // хранит текущее состо€ние
-    private States localState = States.S;    // хранит текущее состо€ние
-    
+
     private StringReader sr;                 // позвол€ет посимвольно считывать строку
-    
-    private string[] TNUM;                   // таблица встреченных чисел
-    private string[] TID;                    // таблица встреченных идентификаторов
-    
-    
+
     private int tics = 0;                    // предохранение от вечного цикла
     private bool str;                        // требуетс€ дл€ корректного распознавани€ "строк" 
-    
-    
+
+
     private List<string> hexColor => Colorator.Instance.GetColors();   // цвета дл€ синтаксиса
-    private string HexColor(int state) => hexColor[str ? (int) States.STR : state];
-    private string colin = "<COLOR=#", colout = "</COLOR>";            // вспомогательные переменные
-    
-    
-    
+    private string HexColor(int state) => hexColor[str ? (int)States.STR : state];
+
+    private readonly string colin = "<COLOR=#";
+    private readonly string colout = "</COLOR>";
     private string reverseBuf;                                         // окрашенный ввод
 
-    private Dictionary<int, string> typesOfLexem = new Dictionary<int, string>()
-    {
-        {1, "служебные слова"},
-        {2, "ограничители"},
-        {3, "числа"},
-        {4, "идентификатор"},
-        {-1, "не опознано"},
-    };
-
-    public void RemoveColors()
-    {
-        var rgx = new Regex(@"<(.|\n)*?>");
-        Input.text = rgx.Replace(Input.text, "");
-    }
-    public void StartAnalyze()
+    private void Cleaning()
     {
         Lexemes = new List<Lex>();
-        TNUM = new string[] { };
-        TID = new string[] { };
         globalState = States.S;
         buf = "";
         dt = 0;
@@ -73,25 +51,16 @@ public class Analyzer : MonoBehaviour
         Output.text = "";
         reverseBuf = "";
         sm[0] = '\0';
-        RemoveColors();
-        Analysis(Input.text);
+    }
 
-        //foreach (var lexeme in Lexemes) Debug.Log(lexeme.val + "\t" + typesOfLexem[lexeme.id]);
+    public void StartAnalyze()
+    {
+        Cleaning();
+        Input.text = Colorator.RemoveColors(Input);
+        Analysis(Input.text);
         Debug.Log("F");
     }
 
-
-    private (int, string) PushLex(string[] lexes, string buf)
-    {
-        lexes ??= new string[] { };
-        var srh = Array.FindIndex(lexes, s => s.Equals(buf));
-        if (srh != -1) return (-1, "");
-
-        Array.Resize(ref lexes, lexes.Length + 1);
-        lexes[lexes.Length - 1] = buf;
-        return (lexes.Length - 1, buf);
-
-    }
     public void Analysis(string text)
     {
         if (text == null || text.Length <= 0) return;
@@ -104,131 +73,20 @@ public class Analyzer : MonoBehaviour
             {
 
                 case States.S:
-                    if (sm[0] == ' ' || sm[0] == '\t' || sm[0] == '\0' || sm[0] == '\r')
-                    {
-                        reverseBuf += sm[0];
-                        GetNext();
-                    }
-                    else if (sm[0] == '\n')
-                    {
-                        if (!Lexemes[Lexemes.Count - 1].val.Contains(";") && !Lexemes[Lexemes.Count - 1].val.Contains("{"))
-                        {
-                            Lexemes.Add(new Lex(2, (int)States.DLM, ";\n"));
-                        }
-                        reverseBuf += sm[0];
-                        GetNext();
-                    }
-                    else if (char.IsLetter(sm[0]) || sm[0] == '_')
-                    {
-                        buf = "";
-                        buf += sm[0];
-                        globalState = States.ID;
-                        GetNext();
-                    }
-                    else if (char.IsDigit(sm[0]))
-                    {
-                        dt = (int)(sm[0] - '0');
-                        GetNext();
-                        globalState = States.INT;
-
-                    }
-                    else
-                    {
-                        globalState = States.DLM;
-                    }
+                    StartState();
                     break;
                 case States.ID:
-                    if (char.IsLetterOrDigit(sm[0]) || sm[0] == '_')
-                    {
-                        buf += sm[0];
-                        GetNext();
-                    }
-                    else
-                    {
-                        var srch = WordTable.WideSearch(buf);
-                        if (srch.Item1 != -1)
-                        {
-                            ///если нашли стандартное слово
-                            globalState = (States)srch.Item1;
-                            reverseBuf += ColoredLex(buf, HexColor((int)globalState));
-                            if (globalState == States.DLM) globalState = States.S;
-                            previous = new Lex(1, srch.Item1, srch.Item2);
-                            Lexemes.Add(new Lex(1, srch.Item1, srch.Item2));
-                        }
-                        else
-                        {
-                            var j = PushLex(TID, buf);
-                            reverseBuf += ColoredLex(buf, HexColor((int)globalState));
-                            Lexemes.Add(new Lex(4, j.Item1, j.Item2));
-                            globalState = States.S;
-                        }
-
-                    }
+                    IDState();
                     break;
 
                 case States.INT:
-                    if (char.IsDigit(sm[0]))
-                    {
-                        dt = dt * 10 + (sm[0] - '0');
-                        reverseBuf += sm[0];
-                        GetNext();
-                    }
-                    else if (sm[0] == '.')
-                    {
-                        fl = dt;
-                        globalState = States.FLOAT;
-                        GetNext();
-                    }
-                    else
-                    {
-                        var (item1, item2) = PushLex(TNUM, dt.ToString());
-                        reverseBuf += ColoredLex(dt.ToString(), HexColor((int)States.INT));
-                        Lexemes.Add(new Lex(3, item1, item2));
-                        globalState = States.S;
-                    }
+                    IntState();
                     break;
                 case States.FLOAT:
-                    if (char.IsDigit(sm[0]))
-                    {
-                        fl += (float)(sm[0] - '0') / Mathf.Pow(10, mantis++);
-                        GetNext();
-                    }
-                    else
-                    {
-                        mantis = 1;
-                        var (a, b) = PushLex(TNUM, fl.ToString(CultureInfo.InvariantCulture));
-                        reverseBuf += ColoredLex(fl.ToString(CultureInfo.InvariantCulture), HexColor((int)States.FLOAT));
-                        Lexemes.Add(new Lex(3, a, b));
-                        globalState = States.S;
-                    }
+                    FloatState();
                     break;
                 case States.DLM:
-
-                    buf = "";
-                    buf += sm[0];
-                    var (c, d) = WordTable.StateSearch(States.DLM, buf);
-                    if (c != -1)
-                    {
-                        Lexemes.Add(new Lex(2, c, d));
-                        reverseBuf += ColoredLex(buf, HexColor((int)States.DLM));
-                        globalState = States.S;
-                        GetNext();
-                    }
-                    else
-                    {
-                        (c, d) = WordTable.StateSearch(States.STR, buf);
-                        if (c != -1)
-                        {
-                            str = !str;
-                            Lexemes.Add(new Lex(2, c, d));
-                            reverseBuf += ColoredLex(buf, HexColor((int)States.STR));
-                            globalState = States.S;
-                            GetNext();
-                        }
-                        else
-                            globalState = States.ER;
-                    }
-
+                    DLMState();
                     break;
                 case States.ER:
                     Debug.Log("ќшибка в программе");
@@ -239,7 +97,7 @@ public class Analyzer : MonoBehaviour
                     break;
 
                 case States.CON:
-                    if (previous.val == "if") Lexemes.Add(new Lex(2, (int)States.DLM, "("));
+                    if (previous.val == "if") Lexemes.Add(new Lex((int)States.DLM, "("));
                     globalState = States.S;
                     break;
                 case States.FUNC:
@@ -249,22 +107,19 @@ public class Analyzer : MonoBehaviour
                     globalState = States.S;
                     break;
                 case States.LOOPFOR:
-                    if (previous.val == "for") Lexemes.Add(new Lex(2, (int)States.DLM, "("));
+                    if (previous.val == "for") Lexemes.Add(new Lex((int)States.DLM, "("));
                     globalState = States.S;
                     break;
                 case States.LOOPWHILE:
-                    if (previous.val == "while") Lexemes.Add(new Lex(2, (int)States.DLM, "("));
+                    if (previous.val == "while") Lexemes.Add(new Lex((int)States.DLM, "("));
                     globalState = States.S;
                     break;
                 case States.WORD:
                     if (previous.val == "int")
                     {
-                        Lexemes.Add(new Lex(3, (int)States.ID, "main"));
-                        Lexemes.Add(new Lex(2, (int)States.DLM, "(){\n"));
+                        Lexemes.Add(new Lex((int)States.ID, "main"));
+                        Lexemes.Add(new Lex((int)States.DLM, "(){\n"));
                     }
-                    globalState = States.S;
-                    break;
-                case States.NL:
                     globalState = States.S;
                     break;
                 default:
@@ -281,8 +136,8 @@ public class Analyzer : MonoBehaviour
             var lex = Lexemes[i];
             var c = ' ';
             if (lex.val == "\"") str = !str;
-            var hex = HexColor(lex.lex) ;
-            if (i<Lexemes.Count-1 && lex.lex == (int) States.DLM && Lexemes[i+1].lex == (int) States.DLM) c = '\0';
+            var hex = HexColor(lex.state);
+            if (i < Lexemes.Count - 1 && lex.state == (int)States.DLM && Lexemes[i + 1].state == (int)States.DLM || lex.val=="") c = '\0';
             Output.text += ColoredLex(lex.val, hex) + (str ? "" : c.ToString());
         }
     }
@@ -293,12 +148,138 @@ public class Analyzer : MonoBehaviour
         if (res == -1) Debug.LogWarning("ATAS");
         if (res != -1 || globalState == States.F) return;
         Debug.LogWarning("ATAS");
-        Lexemes.Add(new Lex(2, (int)States.DLM, "}"));
+        Lexemes.Add(new Lex((int)States.DLM, "}"));
         globalState = States.F;
     }
-    
+
     private string ColoredLex(string val, string col) => colin + col + ">" + val + colout;
 
+    public void StartState()
+    {
+        if (sm[0] == ' ' || sm[0] == '\t' || sm[0] == '\0' || sm[0] == '\r')
+        {
+            reverseBuf += sm[0];
+            GetNext();
+        }
+        else if (sm[0] == '\n')
+        {
+            if (!Lexemes[Lexemes.Count - 1].val.Contains(";") && !Lexemes[Lexemes.Count - 1].val.Contains("{"))
+            {
+                Lexemes.Add(new Lex((int)States.DLM, ";\n"));
+            }
+            reverseBuf += sm[0];
+            GetNext();
+        }
+        else if (char.IsLetter(sm[0]) || sm[0] == '_')
+        {
+            buf = "";
+            buf += sm[0];
+            globalState = States.ID;
+            GetNext();
+        }
+        else if (char.IsDigit(sm[0]))
+        {
+            dt = (int)(sm[0] - '0');
+            GetNext();
+            globalState = States.INT;
+
+        }
+        else
+        {
+            globalState = States.DLM;
+        }
+    }
+    public void IDState()
+    {
+        if (char.IsLetterOrDigit(sm[0]) || sm[0] == '_')
+        {
+            buf += sm[0];
+            GetNext();
+        }
+        else
+        {
+            var srch = WordTable.WideSearch(buf);
+            if (srch.Item1 != -1)
+            {
+                ///если нашли стандартное слово
+                globalState = (States)srch.Item1;
+                reverseBuf += ColoredLex(buf, HexColor((int)globalState));
+                if (globalState == States.DLM) globalState = States.S;
+                previous = new Lex(srch.Item1, srch.Item2);
+                Lexemes.Add(new Lex(srch.Item1, srch.Item2));
+            }
+            else
+            {
+                reverseBuf += ColoredLex(buf, HexColor((int)globalState));
+                Lexemes.Add(new Lex((int)States.ID, buf));
+                globalState = States.S;
+            }
+
+        }
+    }
+    public void IntState()
+    {
+        if (char.IsDigit(sm[0]))
+        {
+            dt = dt * 10 + (sm[0] - '0');
+            reverseBuf += sm[0];
+            GetNext();
+        }
+        else if (sm[0] == '.')
+        {
+            fl = dt;
+            globalState = States.FLOAT;
+            GetNext();
+        }
+        else
+        {
+            reverseBuf += ColoredLex(dt.ToString(), HexColor((int)States.INT));
+            Lexemes.Add(new Lex((int)States.INT, dt.ToString()));
+            globalState = States.S;
+        }
+    }
+    public void FloatState()
+    {
+        if (char.IsDigit(sm[0]))
+        {
+            fl += (float)(sm[0] - '0') / Mathf.Pow(10, mantis++);
+            GetNext();
+        }
+        else
+        {
+            mantis = 1;
+            reverseBuf += ColoredLex(fl.ToString(CultureInfo.InvariantCulture), HexColor((int)States.FLOAT));
+            Lexemes.Add(new Lex((int)States.FLOAT, fl.ToString()));
+            globalState = States.S;
+        }
+    }
+    public void DLMState()
+    {
+        buf = "";
+        buf += sm[0];
+        var (c, d) = WordTable.StateSearch(States.DLM, buf);
+        if (c != -1)
+        {
+            Lexemes.Add(new Lex(c, d));
+            reverseBuf += ColoredLex(buf, HexColor((int)States.DLM));
+            globalState = States.S;
+            GetNext();
+        }
+        else
+        {
+            (c, d) = WordTable.StateSearch(States.STR, buf);
+            if (c != -1)
+            {
+                str = !str;
+                Lexemes.Add(new Lex(c, d));
+                reverseBuf += ColoredLex(buf, HexColor((int)States.STR));
+                globalState = States.S;
+                GetNext();
+            }
+            else
+                globalState = States.ER;
+        }
+    }
 }
 
 

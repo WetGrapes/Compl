@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, NL, STR }
+public enum States { S = 0, INT, FLOAT, F, ID, ER, CON, FUNC, TYPE, LOOPFOR, LOOPWHILE, WORD, DLM, STR }
 
 public class WordTable : MonoBehaviour
 {
@@ -62,13 +62,13 @@ public class WordTable : MonoBehaviour
         States.CON, new Dictionary<string,List<string>>
         {
             {"if",new List<string>{"если"}},
-            {"\nelse",new List<string>{"иначе"}},
+            {"\nelse",new List<string>{"иначе"}}
         }
     },
     {
         States.FUNC, new Dictionary<string,List<string>>
         {
-            {"",new List<string>{"функц", "подпрограмм", "вызва", "вызов", "вызыв","парамет"}},
+            {"",new List<string>{"функц", "подпрограмм", "вызва", "вызов", "вызыв","парамет"}}
         }
     },
     {
@@ -77,19 +77,19 @@ public class WordTable : MonoBehaviour
             {"int",new List<string>{"целоч","цела","целое", "инт"}},
             {"float",new List<string>{"дробн", "веществ", "флоат"}},
             {"char",new List<string>{"символ","чар"}},
-            {"bool",new List<string>{"логич", "бул"}},
+            {"bool",new List<string>{"логич", "бул"}}
         }
     },
     {
         States.LOOPFOR, new Dictionary<string,List<string>>
         {
-            {"for",new List<string>{"для"}},
+            {"for",new List<string>{"для"}}
         }
     },
       {
         States.LOOPWHILE, new Dictionary<string,List<string>>
         {
-            {"while", new List<string>{"пока"}},
+            {"while", new List<string>{"пока"}}
         }
     },
     {
@@ -105,10 +105,9 @@ public class WordTable : MonoBehaviour
     {
         States.DLM, new Dictionary<string,List<string>>
         {
-            {"1", new List<string>{"один"}},
             {"+",new List<string>{"слож", "прибав","увеличи", "плюс", "+"}},
             {"-",new List<string>{"уменьш","минус", "-", "вычит", "вычесть"}},
-            {"*",new List<string>{"умнож", "*"}},
+            {"*",new List<string>{"умнож", "*","указатeл"}},
             {"/",new List<string>{"раздел", "делит", "/"}},
             {">",new List<string>{"больш"}},
             {"<",new List<string>{"меньш"}},
@@ -117,7 +116,7 @@ public class WordTable : MonoBehaviour
             {"||",new List<string>{"или"}},
             {"!",new List<string>{"не", "!"}},
             {"|",new List<string>{"|"}},
-            {"&",new List<string>{"&"}},
+            {"&",new List<string>{"&","ссылк"}},
             {"=",new List<string>{"=","равн"}},
             {")\n{\n",new List<string>{"то", "тогда", "повтор", "выполн", "сдела"}},
             {"}", new List<string>{"."}},
@@ -127,20 +126,13 @@ public class WordTable : MonoBehaviour
             {"",new List<string>{"на", "в","до","тех", "пор"}},
             {",",new List<string>{","}},
             {"%", new List<string>{"%", "процент"}},
-            {"\n{\n",new List<string>{"котор"}},
-            
-        }
-    },
-    {
-        States.NL, new Dictionary<string,List<string>>
-        {
-            {";\n",new List<string>{"\n"}},
+            {"\n{\n",new List<string>{"котор"}}
         }
     },
     {
         States.STR, new Dictionary<string,List<string>>
         {
-            {"\"",new List<string>{"\""}},
+            {"\"",new List<string>{"\""}}
         }
     },
     };
@@ -157,9 +149,10 @@ printf от "%d", a плюс равно 1;
 программа_
 целое a = 4
 целочисленное b равн 8
+вещественное g равен 7.656564561
 целая c = b раздел на a
 printf от "%d", c;
-если c больше 1, то c равно b минус a
+если c больше 1 то c равно b минус a
 .
 для инт i = 0: i меньш 5: i ++ повторяй printf от "%d", i;
 .
