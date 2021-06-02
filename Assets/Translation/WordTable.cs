@@ -69,7 +69,6 @@ public class WordTable : MonoBehaviour
         States.FUNC, new Dictionary<string,List<string>>
         {
             {"",new List<string>{"функц", "подпрограмм", "вызва", "вызов", "вызыв","парамет"}},
-            
         }
     },
     {
@@ -108,21 +107,23 @@ public class WordTable : MonoBehaviour
         {
             {"1", new List<string>{"один"}},
             {"+",new List<string>{"слож", "прибав","увеличи", "плюс", "+"}},
-            {"-",new List<string>{"уменьш","минус", "-"}},
+            {"-",new List<string>{"уменьш","минус", "-", "вычит", "вычесть"}},
             {"*",new List<string>{"умнож", "*"}},
             {"/",new List<string>{"раздел", "делит", "/"}},
-            {">",new List<string>{"больш"}},
-            {"<",new List<string>{"меньш"}},
+            {">",new List<string>{"больш",">"}},
+            {"<",new List<string>{"меньш","<"}},
             {"==",new List<string>{"эквивалент"}},
             {"&&",new List<string>{"и"}},
             {"||",new List<string>{"или"}},
-            {"!",new List<string>{"не"}},
+            {"!",new List<string>{"не", "!"}},
+            {"|",new List<string>{"|"}},
+            {"&",new List<string>{"&"}},
             {"=",new List<string>{"=","равн"}},
-            {")\n{\n",new List<string>{"то", "тогда", "котор", "повтор", "выполн", "сдела"}},
+            {")\n{\n",new List<string>{"то", "тогда", "повтор", "выполн", "сдела"}},
             {"}", new List<string>{"."}},
             {";", new List<string>{":"}},
-            {")", new List<string>{";"}},
-            {"(",new List<string>{"от", "при", "с","без"}},
+            {")", new List<string>{";",")"}},
+            {"(",new List<string>{"от", "при", "с","без", "("}},
             {"",new List<string>{"на", "в","до","тех", "пор"}},
             {",",new List<string>{","}},
             {"%", new List<string>{"%", "процент"}},
@@ -149,7 +150,7 @@ public class WordTable : MonoBehaviour
 /*
 подключ "iostream"
 
-веществ функция F с инт a = 5; которая
+веществ функция F с инт a = 5, бул m; которая
 printf от "%d", a плюс равно 1;
 .
 

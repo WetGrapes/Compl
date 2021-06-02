@@ -88,7 +88,6 @@ public class Analyzer : MonoBehaviour
         if (text == null || text.Length <= 0) return;
         sr = new StringReader(text);
         tics = text.Length + 1;
-        Debug.LogWarning(text.Length);
         while (globalState != States.F && tics > 0)
         {
 
@@ -161,11 +160,11 @@ public class Analyzer : MonoBehaviour
                 case States.INT:
                     if (char.IsDigit(sm[0]))
                     {
-                        dt = dt * 10 + (int)(sm[0] - '0');
+                        dt = dt * 10 + (sm[0] - '0');
                         reverseBuf += sm[0];
                         GetNext();
                     }
-                    else if (sm[0] == '.' || sm[0] == ',')
+                    else if (sm[0] == '.')
                     {
                         fl = dt;
                         globalState = States.FLOAT;
