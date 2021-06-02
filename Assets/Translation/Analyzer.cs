@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using TMPro;
 using UnityEngine;
@@ -37,6 +38,7 @@ public class Analyzer : MonoBehaviour
     
     
     private List<string> hexColor => Colorator.Instance.GetColors();   // цвета для синтаксиса
+    private string HexColor(int state) => hexColor[str ? (int) States.STR : state];
     private string colin = "<COLOR=#", colout = "</COLOR>";            // вспомогательные переменные
     
     
@@ -140,15 +142,15 @@ public class Analyzer : MonoBehaviour
                         {
                             ///если нашли стандартное слово
                             globalState = (States)srch.Item1;
+                            reverseBuf += ColoredLex(buf, HexColor((int)globalState));
                             if (globalState == States.DLM) globalState = States.S;
-                            reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
                             previous = new Lex(1, srch.Item1, srch.Item2);
                             Lexemes.Add(new Lex(1, srch.Item1, srch.Item2));
                         }
                         else
                         {
                             var j = PushLex(TID, buf);
-                            reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
+                            reverseBuf += ColoredLex(buf, HexColor((int)globalState));
                             Lexemes.Add(new Lex(4, j.Item1, j.Item2));
                             globalState = States.S;
                         }
@@ -172,7 +174,7 @@ public class Analyzer : MonoBehaviour
                     else
                     {
                         var (item1, item2) = PushLex(TNUM, dt.ToString());
-                        reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
+                        reverseBuf += ColoredLex(dt.ToString(), HexColor((int)States.INT));
                         Lexemes.Add(new Lex(3, item1, item2));
                         globalState = States.S;
                     }
@@ -186,8 +188,8 @@ public class Analyzer : MonoBehaviour
                     else
                     {
                         mantis = 1;
-                        var (a, b) = PushLex(TNUM, dt.ToString());
-                        reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
+                        var (a, b) = PushLex(TNUM, fl.ToString(CultureInfo.InvariantCulture));
+                        reverseBuf += ColoredLex(fl.ToString(CultureInfo.InvariantCulture), HexColor((int)States.FLOAT));
                         Lexemes.Add(new Lex(3, a, b));
                         globalState = States.S;
                     }
@@ -200,6 +202,7 @@ public class Analyzer : MonoBehaviour
                     if (c != -1)
                     {
                         Lexemes.Add(new Lex(2, c, d));
+                        reverseBuf += ColoredLex(buf, HexColor((int)States.DLM));
                         globalState = States.S;
                         GetNext();
                     }
@@ -208,8 +211,9 @@ public class Analyzer : MonoBehaviour
                         (c, d) = WordTable.StateSearch(States.STR, buf);
                         if (c != -1)
                         {
+                            str = !str;
                             Lexemes.Add(new Lex(2, c, d));
-                            reverseBuf += ColoredLex(buf, hexColor[(int)globalState]);
+                            reverseBuf += ColoredLex(buf, HexColor((int)States.STR));
                             globalState = States.S;
                             GetNext();
                         }
@@ -264,17 +268,13 @@ public class Analyzer : MonoBehaviour
     }
     private void OutputLexemes()
     {
-        foreach (var lex in Lexemes)
+        for (var i = 0; i < Lexemes.Count; i++)
         {
+            var lex = Lexemes[i];
             var c = ' ';
             if (lex.val == "\"") str = !str;
-            var hex = hexColor[lex.lex];
-            if (str)
-            {
-                c = '\0';
-                hex = hexColor[(int)States.STR];
-            }
-
+            var hex = HexColor(lex.lex) ;
+            if (i<Lexemes.Count-1 && lex.lex == (int) States.DLM && Lexemes[i+1].lex == (int) States.DLM) c = '\0';
             Output.text += ColoredLex(lex.val, hex) + (str ? "" : c.ToString());
         }
     }
