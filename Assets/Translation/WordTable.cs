@@ -122,7 +122,7 @@ public class WordTable : MonoBehaviour
             {"}", new List<string>{"."}},
             {";", new List<string>{":"}},
             {")", new List<string>{";",")"}},
-            {"(",new List<string>{"от", "при", "с","без", "("}},
+            {"(",new List<string>{"от","при", "с","без", "("}},
             {"",new List<string>{"на", "в","до","тех", "пор"}},
             {",",new List<string>{","}},
             {"%", new List<string>{"%", "процент"}},

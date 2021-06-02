@@ -103,6 +103,27 @@ public class Analyzer : MonoBehaviour
                 case States.FUNC:
                     globalState = States.S;
                     break;
+                case States.STR:
+                    
+                    if (!str)
+                    {
+                        Debug.Log(buf);
+                        if (buf == "\"") str = !str;
+                    }
+                    else
+                    {
+                        buf += sm[0];
+                        if (sm[0] == '"')
+                        {
+                            str = !str;
+                            Lexemes.Add(new Lex((int)States.STR, buf));
+                            reverseBuf += ColoredLex(buf, HexColor((int)States.STR));
+                            globalState = States.S;
+                            buf = "";
+                        }
+                    }
+                    GetNext();
+                    break;
                 case States.TYPE:
                     globalState = States.S;
                     break;
@@ -261,24 +282,11 @@ public class Analyzer : MonoBehaviour
         if (c != -1)
         {
             Lexemes.Add(new Lex(c, d));
-            reverseBuf += ColoredLex(buf, HexColor((int)States.DLM));
+            reverseBuf += ColoredLex(buf, HexColor((int) States.DLM));
             globalState = States.S;
             GetNext();
         }
-        else
-        {
-            (c, d) = WordTable.StateSearch(States.STR, buf);
-            if (c != -1)
-            {
-                str = !str;
-                Lexemes.Add(new Lex(c, d));
-                reverseBuf += ColoredLex(buf, HexColor((int)States.STR));
-                globalState = States.S;
-                GetNext();
-            }
-            else
-                globalState = States.ER;
-        }
+        else globalState = States.STR;
     }
 }
 
