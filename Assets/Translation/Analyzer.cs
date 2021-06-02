@@ -8,22 +8,42 @@ using UnityEngine;
 
 public class Analyzer : MonoBehaviour
 {
-    public List<Lex> Lexemes = new List<Lex>();
-    private Lex previous;
-    public TextMeshProUGUI output;
-    private string buf = ""; // буфер для хранения лексемы
-    private string prevBuf = ""; // буфер для хранения прошлой лексемы
-    private char[] sm = new char[1];
-    private int dt = 0, mantis = 1;
-    private float fl = 0;
+    public TMP_InputField Input, Output; // ввод данных и вывод
+    
+    //буферы
+    private string buf = "";             // буфер для хранения лексемы
+    private char[] sm = new char[1];     //буфер для последнего символа
+    private int dt = 0, mantis = 1;      //целая часть, знак мантиссы
+    private float fl = 0;                //вещественное число
+    
+    
+    //лексемы
+    public List<Lex> Lexemes = new List<Lex>();    //все лексемы
+    private Lex previous;                          //буфер для прошлой лексемы для обработки особых состояний
+    
+    
     // состояния state-машины
-    private States globalState = States.S; // хранит текущее состояние
-    private States localState = States.S; // хранит текущее состояние
-    private StringReader sr; // позволяет посимвольно считывать строку
-    private string[] TNUM;
-    private string[] TID;
-    private int tics = 0;
-    bool stop = false;
+    private States globalState = States.S;   // хранит текущее состояние
+    private States localState = States.S;    // хранит текущее состояние
+    
+    private StringReader sr;                 // позволяет посимвольно считывать строку
+    
+    private string[] TNUM;                   // таблица встреченных чисел
+    private string[] TID;                    // таблица встреченных идентификаторов
+    
+    
+    private int tics = 0;                    // предохранение от вечного цикла
+    private bool str;                        // требуется для корректного распознавания "строк" 
+    
+    
+    private List<string> hexColor => Colorator.Instance.GetColors();   // цвета для синтаксиса
+    private string colin = "<COLOR=#", colout = "</COLOR>";            // вспомогательные переменные
+    
+    
+    
+    private string reverseBuf;                                         // окрашенный ввод
+    
+    
     private Dictionary<int, string> typesOfLexem = new Dictionary<int, string>()
     {
         {1, "служебные слова"},
@@ -33,7 +53,7 @@ public class Analyzer : MonoBehaviour
         {-1, "не опознано"},
     };
 
-    public TMP_InputField Input;
+   
     public void StartAnalyze()
     {
         Lexemes = new List<Lex>();
@@ -239,21 +259,10 @@ public class Analyzer : MonoBehaviour
                     throw new ArgumentOutOfRangeException();
             }
         }
-        Output();
+        OutputLexemes();
         Input.text = reverseBuf;
     }
-
-    private bool str;
-    private List<string> hexColor = new List<string>
-        { "ffffff", "ffffff", "ffffff", "ffffff", "fff060", "00ffff",
-            "800000", "808000", "800000", "000080", "ff00ff", "800000",
-            "000080", "ff00ff", "ff00ff" };
-
-    private string colin = "<COLOR=#", colout = "</COLOR>";
-
-    private string ColoredLex(string val, string col) => colin + col + ">" + val + colout;
-    private string reverseBuf;
-    private void Output()
+    private void OutputLexemes()
     {
         foreach (var lex in Lexemes)
         {
@@ -266,7 +275,7 @@ public class Analyzer : MonoBehaviour
                 hex = hexColor[(int)States.STR];
             }
 
-            output.text += ColoredLex(lex.val, hex) + (str ? "" : c.ToString());
+            Output.text += ColoredLex(lex.val, hex) + (str ? "" : c.ToString());
         }
     }
     private void GetNext()
@@ -279,5 +288,10 @@ public class Analyzer : MonoBehaviour
         Lexemes.Add(new Lex(2, (int)States.DLM, "}"));
         globalState = States.F;
     }
+    
+    private string ColoredLex(string val, string col) => colin + col + ">" + val + colout;
 
 }
+
+
+
