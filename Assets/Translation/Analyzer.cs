@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 
@@ -44,8 +45,7 @@ public class Analyzer : MonoBehaviour
     
     
     private string reverseBuf;                                         // окрашенный ввод
-    
-    
+
     private Dictionary<int, string> typesOfLexem = new Dictionary<int, string>()
     {
         {1, "служебные слова"},
@@ -55,7 +55,11 @@ public class Analyzer : MonoBehaviour
         {-1, "не опознано"},
     };
 
-   
+    public void RemoveColors()
+    {
+        var rgx = new Regex(@"<(.|\n)*?>");
+        Input.text = rgx.Replace(Input.text, "");
+    }
     public void StartAnalyze()
     {
         Lexemes = new List<Lex>();
@@ -64,10 +68,15 @@ public class Analyzer : MonoBehaviour
         globalState = States.S;
         buf = "";
         dt = 0;
-
+        fl = 0;
+        mantis = 1;
+        Output.text = "";
+        reverseBuf = "";
+        sm[0] = '\0';
+        RemoveColors();
         Analysis(Input.text);
 
-        foreach (var lexeme in Lexemes) Debug.Log(lexeme.val + "\t" + typesOfLexem[lexeme.id]);
+        //foreach (var lexeme in Lexemes) Debug.Log(lexeme.val + "\t" + typesOfLexem[lexeme.id]);
         Debug.Log("F");
     }
 
