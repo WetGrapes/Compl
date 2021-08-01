@@ -41,14 +41,8 @@ public class WordTable : MonoBehaviour
     }
     public static (int, string) SearchLex(string[] lexes, string buf)
     {
-        var srh = Array.FindIndex(lexes, s =>
-        {
-            if (buf.StartsWith(s))
-            {
-                return true;
-            }
-            else return false;
-        });
+        var srh = Array.FindIndex(lexes, s 
+            => buf.StartsWith(s) && s.Length + 2 <= buf.Length);
         return srh != -1 ? (srh, buf) : (-1, "");
     }
 
